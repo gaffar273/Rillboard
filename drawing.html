@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f6f2">
+  <meta name="description" content="A free, private drawing workspace. Sketch ideas, create diagrams, and save your work on your own computer. Works offline.">
+  <title>Rillboard</title>
+  <base id="asset-base" href="./">
+  <script>
+    if (!window.chrome?.webview) location.replace(new URL('index.html', location.href).href);
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+      document.getElementById('asset-base').href = '/';
+    }
+  </script>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="india-boundary.js" defer></script>
+  <script src="perfect-freehand.js" defer></script>
+  <script src="shapes.js" defer></script>
+  <script src="geometry.js" defer></script>
+  <script src="device-storage.js" defer></script>
+  <script src="workspace-store.js" defer></script>
+  <script src="board-pdf.js" defer></script>
+  <script src="app.js" defer></script>
+  <script src="plugins.js" defer></script>
+</head>
+<body>
+  <main id="workspace" aria-label="Drawing workspace">
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-label="Drawing canvas. Choose a tool, then drag to draw. Press question mark for keyboard shortcuts.">
+      <defs id="canvas-defs"></defs>
+      <g id="scene"></g><g id="selection"></g>
+    </svg>
+
+    <div class="top-left"><span class="app-wordmark"><img src="icon.svg" alt="">Rillboard</span>
+      <button class="icon-button surface menu-trigger" id="menu-button" title="Main menu" aria-label="Main menu" aria-expanded="false" aria-controls="main-menu" data-icon="menu"></button>
+      <button class="board-switcher button" data-action="boards" title="Boards, folders and templates"><span data-icon="folder"></span><span id="board-title">Untitled</span></button>
+      <button class="button" id="style-toggle" data-icon="settings" aria-expanded="false" aria-controls="properties" aria-label="Style" title="Drawing style">Style</button>
+      <div id="save-state" class="save-state" aria-live="polite"><span class="status-dot"></span><span>Saved locally</span></div>
+    </div>
+
+    <nav class="toolbar surface" aria-label="Drawing tools">
+      <button class="tool lock-tool active" id="tool-lock" title="Keep drawing with the same tool (Q)" aria-label="Keep tool active" aria-pressed="true" data-icon="lock"></button>
+      <span class="tool-divider"></span>
+      <button class="tool" data-tool="hand" data-icon="hand" aria-label="Hand tool" title="Hand — H"><small>H</small></button>
+      <button class="tool active" data-tool="select" data-icon="cursor" aria-label="Selection tool" title="Selection — V or 1" aria-pressed="true"><small>1</small></button>
+      <button class="tool" data-tool="lasso" aria-label="Lasso selection" title="Lasso selection — S"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 17C1 15 2 7 7 4c6-3 14 0 14 6 0 5-6 9-12 7-3-1-3-4-1-5s4 1 3 4c0 3-2 5-4 6" stroke-dasharray="3 2"/></svg><small>S</small></button>
+      <button class="tool shapes-trigger" id="shapes-button" data-action="shapes" aria-haspopup="dialog" aria-controls="shapes-dialog" title="Choose a shape">Shapes</button>
+      <button class="tool" data-tool="rectangle" data-icon="rectangle" aria-label="Rectangle tool" title="Rectangle — R or 2"><small>2</small></button>
+      <button class="tool" data-tool="diamond" data-icon="diamond" aria-label="Diamond tool" title="Diamond — D or 3"><small>3</small></button>
+      <button class="tool" data-tool="ellipse" data-icon="ellipse" aria-label="Ellipse tool" title="Ellipse — O or 4"><small>4</small></button>
+      <button class="tool" data-tool="arrow" data-icon="arrow" aria-label="Arrow tool" title="Arrow — A or 5"><small>5</small></button>
+      <button class="tool" data-tool="line" data-icon="line" aria-label="Line tool" title="Line — L or 6"><small>6</small></button>
+      <button class="tool" data-tool="pencil" data-icon="pencil" aria-label="Draw tool" title="Draw — P or 7"><small>7</small></button>
+      <button class="tool" data-tool="text" data-icon="text" aria-label="Text tool" title="Text — T or 8"><small>8</small></button>
+      <button class="tool" data-tool="image" data-icon="image" aria-label="Insert image" title="Insert image — 9"><small>9</small></button>
+      <button class="tool" data-tool="eraser" data-icon="eraser" aria-label="Eraser tool" title="Eraser — E or 0"><small>0</small></button>
+<button class="tool" data-tool="graphpaper" aria-label="Graph paper" title="Graph paper — G: drag to choose size"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>
+      <button class="tool" data-action="graph" aria-label="Plot graph" title="Plot a function or insert graph paper">ƒ(x)</button>
+    </nav>
+
+    <div class="top-right">
+      <button class="button library-button" id="library-button" aria-expanded="false" data-icon="library">Library</button>
+      <button class="button primary" id="export-button" data-icon="export">Export</button>
+    </div>
+
+
+    <p class="tool-hint" id="tool-hint">Use your pen on blank canvas to write, or press P to draw freely.</p>
+
+    <section class="welcome" id="welcome" aria-label="Rillboard home">
+      <div class="home-body"><h1>Your <em>whiteboard</em></h1><p>Sketch ideas, draw diagrams, and work through lessons.</p>
+      <div class="home-actions"><button class="button primary" id="home-draw" data-icon="pencil">Start drawing</button><button class="button" data-action="boards" data-icon="folder">My boards</button></div>
+      <div class="home-links"><button data-action="open">Open a file</button><button data-action="templates">Browse templates</button></div></div>
+      <div class="home-art" aria-hidden="true"><i></i><i></i><i></i></div>
+    </section>
+
+    <aside class="properties surface" id="properties" aria-label="Style controls">
+      <header class="style-heading">
+        <h2>Style</h2><span id="style-subject"></span>
+        <button id="style-close" class="icon-button" data-icon="close" aria-label="Close style panel" title="Close style panel"></button>
+      </header>
+      <div class="style-body">
+      <div id="style-preview" role="img" aria-label="Current style preview" hidden></div>
+      <div id="style-empty">
+        <p>Select something on the canvas, or pick a tool to set its style.</p>
+        <div class="style-shortcuts">
+          <button data-style-tool="pencil" data-icon="pencil">Draw</button>
+          <button data-style-tool="rectangle" data-icon="rectangle">Shape</button>
+          <button data-style-tool="text" data-icon="text">Text</button>
+        </div>
+      </div>
+      <div id="eraser-options" hidden>
+        <fieldset id="eraser-mode" aria-describedby="eraser-description">
+          <legend>Eraser mode</legend>
+          <div class="eraser-choices">
+            <label><input type="radio" name="eraser-mode" value="object" checked><span data-icon="rectangle">Object</span></label>
+            <label><input type="radio" name="eraser-mode" value="brush"><span data-icon="eraser">Brush</span></label>
+            <label><input type="radio" name="eraser-mode" value="area"><span data-icon="fit">Area</span></label>
+          </div>
+        </fieldset>
+        <p id="eraser-description" role="status"></p>
+        <fieldset id="eraser-size" hidden>
+          <legend>Brush diameter</legend>
+          <div class="eraser-choices">
+            <label><input type="radio" name="eraser-size" value="8"><span><i aria-hidden="true"></i>8 px</span></label>
+            <label><input type="radio" name="eraser-size" value="20" checked><span><i aria-hidden="true"></i>20 px</span></label>
+            <label><input type="radio" name="eraser-size" value="40"><span><i aria-hidden="true"></i>40 px</span></label>
+          </div>
+        </fieldset>
+      </div>
+<div data-property="pen" class="property-group"><h2>Writing tool</h2><div id="pen-style" class="pen-palette" role="group" aria-label="Writing tools"><button type="button" class="pen-choice" data-pen="pen" title="Smooth pen" aria-label="Smooth pen" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l2 11-5 7-5-7 2-11Z M12 10v11 M10 6h4"/></svg><span>Pen</span></button><button type="button" class="pen-choice" data-pen="pencil" title="Pressure pencil" aria-label="Pressure pencil" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 16 10-12 4 4L9 20l-6 1 2-5Z M5 16l4 4 M13 6l4 4"/></svg><span>Pencil</span></button><button type="button" class="pen-choice" data-pen="marker" title="Marker" aria-label="Marker" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m6 14 8-11 6 5-8 11-6-5Z M6 14l-3 6 7 1 2-2 M4 20h6"/></svg><span>Marker</span></button><button type="button" class="pen-choice" data-pen="highlighter" title="Highlighter" aria-label="Highlighter" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m7 13 7-10 7 5-7 10-7-5Z M7 13l-3 5 7 3 3-3 M3 22h17"/></svg><span>Highlight</span></button></div></div>
+      <div data-property="stroke" class="property-group">
+        <div class="property-label"><h2 id="stroke-heading">Stroke color</h2><span class="style-value" id="stroke-value"></span></div>
+        <div class="color-row" id="stroke-colors" role="group" aria-labelledby="stroke-heading"></div>
+      </div>
+      <div data-property="fill" class="property-group fill-property">
+        <div class="property-label"><h2 id="fill-heading">Fill color</h2><span class="style-value" id="fill-value"></span></div>
+        <div class="color-row" id="fill-colors" role="group" aria-labelledby="fill-heading"></div>
+      </div>
+      <div data-property="fill" class="property-group fill-property">
+        <h2 id="fill-pattern-heading">Fill pattern</h2>
+        <div class="option-row labeled-options" id="fill-options" role="group" aria-labelledby="fill-pattern-heading">
+          <button data-fill="hachure" title="Hatched fill" class="option"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 9 5-5M4 16 16 4M8 20 20 8m-5 12 5-5"/></svg>Hatched</button>
+          <button data-fill="solid" title="Solid fill" class="option"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor" stroke="none"/></svg>Solid</button>
+        </div>
+      </div>
+      <div data-property="width" class="property-group">
+        <div class="property-label"><h2 id="width-heading">Stroke width</h2><span class="style-value" id="width-value"></span></div>
+        <div class="option-row" id="width-options" role="group" aria-labelledby="width-heading">
+          <button class="option" data-width="1.5" aria-label="Thin, 1.5 pixels" title="Thin · 1.5 px"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18" stroke-width="1.5"/></svg></button>
+          <button class="option" data-width="2.5" aria-label="Medium, 2.5 pixels" title="Medium · 2.5 px"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18" stroke-width="2.5"/></svg></button>
+          <button class="option" data-width="4" aria-label="Thick, 4 pixels" title="Thick · 4 px"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18" stroke-width="4"/></svg></button>
+          <button class="option" id="pen-preset-width" hidden></button>
+        </div>
+      </div>
+      <div data-property="dash" class="property-group">
+        <div class="property-label"><h2 id="dash-heading">Line pattern</h2><span class="style-value" id="dash-value"></span></div>
+        <div class="option-row" id="dash-options" role="group" aria-labelledby="dash-heading">
+          <button class="option" data-dash="solid" title="Solid" aria-label="Solid line"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18"/></svg></button>
+          <button class="option" data-dash="dashed" title="Dashed" aria-label="Dashed line"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18" stroke-dasharray="4 3"/></svg></button>
+          <button class="option" data-dash="dotted" title="Dotted" aria-label="Dotted line"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12h18" stroke-dasharray=".4 3.2"/></svg></button>
+        </div>
+      </div>
+      <div data-property="rough" class="property-group">
+        <h2 id="rough-heading">Line finish</h2>
+        <div class="option-row labeled-options" id="rough-options" role="group" aria-labelledby="rough-heading">
+          <button class="option" data-rough="0" title="Clean lines"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 17 6-10 6 10 6-10"/></svg>Clean</button>
+          <button class="option" data-rough="1" title="Hand-drawn lines"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m3 17 5-9 7 8 6-9M4 17 9 6l6 12 5-11" stroke-width="1"/></svg>Sketch</button>
+        </div>
+      </div>
+      <div data-property="text" class="property-group text-property" hidden>
+        <label for="font-face">Typeface</label>
+        <select id="font-face"><option value="" disabled hidden>Mixed</option><option value="hand">Segoe Print</option><option value="sans">Segoe UI</option><option value="serif">Georgia</option><option value="mono">Consolas</option><option value="book">Times New Roman</option></select>
+        <div class="option-row" id="font-format" role="group" aria-label="Text formatting">
+          <button type="button" class="option" data-format="bold" title="Bold" aria-label="Bold" aria-pressed="false"><b>B</b></button>
+          <button type="button" class="option" data-format="italic" title="Italic" aria-label="Italic" aria-pressed="false"><i>I</i></button>
+          <button type="button" class="option" data-format="underline" title="Underline" aria-label="Underline" aria-pressed="false"><u>U</u></button>
+        </div>
+      </div>
+      <div data-property="text" class="property-group text-property" hidden>
+        <div class="property-label"><h2 id="font-size-heading">Font size</h2><span class="style-value" id="font-size-value"></span></div>
+        <div class="option-row" id="font-options" role="group" aria-labelledby="font-size-heading">
+          <button class="option" data-font="18" title="18 px" aria-label="18 pixels">18</button>
+          <button class="option" data-font="24" title="24 px" aria-label="24 pixels">24</button>
+          <button class="option" data-font="36" title="36 px" aria-label="36 pixels">36</button>
+          <button class="option" data-font="48" title="48 px" aria-label="48 pixels">48</button>
+        </div>
+      </div>
+      <div data-property="opacity" class="property-group">
+        <div class="property-label"><h2><label for="opacity">Opacity</label></h2><output class="style-value" for="opacity" id="opacity-value">100%</output></div>
+        <input id="opacity" type="range" min="0" max="100" value="100">
+      </div>
+      <div data-property="layers" class="property-group selection-property" hidden><h2>Layers</h2><div class="option-row"><button class="option" data-action="back" title="Send backward" aria-label="Send backward" data-icon="back"></button><button class="option" data-action="front" title="Bring forward" aria-label="Bring forward" data-icon="front"></button><span class="option-gap"></span><button class="option" data-action="duplicate" title="Duplicate (Ctrl D)" aria-label="Duplicate selected" data-icon="copy"></button><button class="option" data-action="delete" title="Delete" aria-label="Delete selected" data-icon="trash"></button></div></div>
+      </div>
+    </aside>
+
+    <div class="dropdown surface" id="main-menu" aria-label="Rillboard menu" hidden>
+      <button data-action="settings" data-icon="settings"><span>Settings</span></button>
+      <button data-action="new-board" data-icon="plus"><span>New board</span><kbd>Ctrl N</kbd></button>
+      <button data-action="boards" data-icon="folder"><span>My boards & folders</span></button>
+      <button data-action="templates" data-icon="sparkles"><span>Start from a template</span></button>
+      <button data-action="history" data-icon="undo"><span>Version history</span></button>
+      <button data-action="present" data-icon="fit"><span>Present this drawing</span></button>
+      <div class="menu-separator"></div>
+      <button data-action="open" data-icon="folder"><span>Open…</span><kbd>Ctrl O</kbd></button>
+      <button data-action="save" data-icon="save"><span>Save to file…</span><kbd>Ctrl S</kbd></button>
+      <button data-action="export" data-icon="image"><span>Export image…</span><kbd>Ctrl Shift E</kbd></button>
+      <div class="menu-separator"></div>
+            <details><summary>Edit selection</summary><button data-action="undo">Undo</button><button data-action="redo">Redo</button><button data-action="select-all">Select all</button><button data-action="duplicate">Duplicate selection</button><button data-action="delete">Delete selection</button></details>
+      <details><summary>Zoom</summary><button data-action="zoom-in">Zoom in</button><button data-action="zoom-out">Zoom out</button><button data-action="zoom-reset">Actual size</button><button data-action="fit">Fit drawing</button></details>
+      <button data-action="new" data-icon="trash"><span>Reset the canvas</span></button>
+      <button data-action="help" data-icon="help"><span>Help & shortcuts</span><kbd>?</kbd></button>
+      <div class="menu-separator"></div>
+      <div class="menu-label">Theme <div class="theme-options"><button data-theme="light" class="active" title="Light theme" aria-label="Light theme" data-icon="sun"></button><button data-theme="dark" title="Dark theme" aria-label="Dark theme" data-icon="moon"></button></div></div>
+      <div class="menu-label background-label">Canvas background<div class="background-options" id="background-options"></div></div>
+      <div class="menu-separator"></div>
+      <button data-action="quit">Close Rillboard</button>
+    </div>
+
+    <aside class="library-panel surface" id="library-panel" hidden aria-label="Drawing library"><div class="panel-heading"><h2>Library</h2><button class="icon-button" data-action="close-library" aria-label="Close library" data-icon="close"></button></div><p>Choose an item to place on your board.</p><div id="library-items" class="library-grid"></div></aside>
+
+    <footer class="bottom-bar">
+      <div class="bottom-left"><div class="zoom-control surface"><button class="icon-button" id="zoom-out" title="Zoom out" aria-label="Zoom out" data-icon="minus"></button><button class="zoom-value" id="zoom-reset" title="Reset zoom to 100%">100%</button><button class="icon-button" id="zoom-in" title="Zoom in" aria-label="Zoom in" data-icon="plus"></button></div><div class="history-control surface"><button class="icon-button" id="undo-button" title="Undo (Ctrl Z)" aria-label="Undo" data-icon="undo" disabled></button><button class="icon-button" id="redo-button" title="Redo (Ctrl Shift Z)" aria-label="Redo" data-icon="redo" disabled></button></div><button class="icon-button surface fit-button" id="fit-button" title="Zoom to fit (Shift 1)" aria-label="Zoom to fit" data-icon="fit"></button></div>
+      <div class="bottom-right"><span class="privacy-label" data-icon="shield">Saved on this device</span><button class="icon-button surface" data-action="help" title="Help and shortcuts (?)" aria-label="Help and shortcuts" data-icon="help"></button></div>
+    </footer>
+
+    <textarea id="text-editor" aria-label="Edit canvas text" spellcheck="false" hidden></textarea>
+    <input type="file" id="file-input" accept=".excalidraw,.json,application/json" hidden>
+    <input type="file" id="image-input" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+
+    <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-heading"><h2 id="settings-title">Settings</h2><button class="icon-button" data-action="close-dialog" data-icon="close" aria-label="Close settings"></button></div>
+      <section class="settings-section"><h3>Live teaching</h3>
+        <div class="settings-row"><div><strong>Whiteboard connector</strong><p>Let your assistant write, draw and ask questions on this board.</p><span id="plugin-state" role="status">Checking connector</span></div><button class="button primary" id="plugin-toggle">Add plugin</button></div>
+        <label class="settings-row"><span><strong>Writing animation</strong><small>How new lesson steps appear.</small></span><select id="writing-mode"><option value="quick">Quick reveal</option><option value="instant">Instant</option></select></label>
+      </section><section class="settings-section"><h3>Assistant connection</h3><div class="settings-row"><div><strong>Connect a client</strong><p>ChatGPT / Codex, Gemini CLI or Claude Desktop.</p></div><button class="button" id="guide-open">Set up</button></div></section><p id="plugin-error" role="alert"></p>
+    </dialog>
+    <dialog id="connection-dialog" aria-labelledby="connection-title"><div class="dialog-heading"><h2 id="connection-title">Connect an assistant</h2><button class="icon-button" id="guide-close" data-icon="close" aria-label="Close guide"></button></div>
+      <label class="settings-row"><strong>Client</strong><select id="bridge-client"><option value="codex">ChatGPT / Codex</option><option value="gemini">Gemini CLI</option><option value="claude">Claude Desktop</option><option value="other">Other local MCP client</option></select></label>
+      <p class="connection-copy">Enable the whiteboard connector in Settings and install Node.js 18 or later.</p><p class="connection-copy" id="client-instructions"></p><pre id="bridge-command"></pre><button class="button" id="copy-command">Copy setup</button>
+      <p class="connection-copy">Refresh the connection or reopen the client. In a chat, ask “Use my whiteboard to teach me about angles.”</p>
+    </dialog>
+    <dialog id="shapes-dialog" aria-labelledby="shapes-title">
+      <div class="dialog-heading"><h2 id="shapes-title">Shapes</h2><button class="icon-button" data-action="close-dialog" aria-label="Close shapes" data-icon="close"></button></div>
+      <div id="shape-options"></div>
+    </dialog>
+    <dialog id="boards-dialog" class="workspace-dialog"><div class="dialog-heading"><h2>My boards </h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><p class="help-intro">Your own workspace. As many boards as your device can store, with no subscription.</p><div class="workspace-actions"><button class="button primary" data-action="new-board" data-icon="plus">New board</button><button class="button" data-action="templates" data-icon="sparkles">Templates</button><button class="button" data-action="history" data-icon="undo">History</button></div><form id="board-details" class="board-details"><label>Board name<input id="board-name" maxlength="100" required></label><label>Folder<input id="board-folder" maxlength="80" list="folder-names" placeholder="Unfiled"></label><datalist id="folder-names"></datalist><button class="button" type="submit">Save details</button></form><div class="board-filters"><input id="board-search" type="search" aria-label="Search boards" placeholder="Search boards or folders…"><select id="folder-filter" aria-label="Filter by folder"><option value="">All folders</option></select></div><div id="boards-list" class="boards-grid"></div><p class="dialog-note">Saved on this device. Use Save to file for a portable backup.</p></dialog>
+
+    <dialog id="templates-dialog" class="workspace-dialog"><div class="dialog-heading"><h2>Start with an idea</h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><p class="help-intro">Every template is free and editable. Opens as a new board, keeping your current drawing.</p><div id="template-items" class="boards-grid"></div></dialog>
+
+    <dialog id="history-dialog" class="workspace-dialog"><div class="dialog-heading"><h2>Version history</h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><p class="help-intro">Keep up to 20 recent versions of each board on this device. Earlier edits are saved automatically, up to once a minute.</p><button class="button primary" data-action="save-version" data-icon="save">Save a version now</button><div id="history-list" class="history-list"></div><p class="dialog-note">Restoring also saves your current drawing in history.</p></dialog>
+
+    <section id="presentation-stage" hidden aria-label="Presentation" tabindex="-1"><div id="presentation-art"></div><div class="presentation-controls surface"><span id="presentation-title"></span><button class="button" data-action="exit-present" data-icon="close">Exit presentation</button></div></section>
+
+    <dialog id="export-dialog"><div class="dialog-heading"><h2>Export your drawing</h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><div id="export-preview"></div><label class="field-label" for="file-name">File name</label><input type="text" id="file-name" value="Untitled" maxlength="100"><label class="checkbox-label"><input type="checkbox" id="export-background" checked> Include canvas background</label><div class="export-options"><button class="button primary" data-action="export-png" data-icon="download">Save as PNG</button><button class="button" data-action="export-svg" data-icon="download">Save as SVG</button><button class="button" data-action="pdf-options">PDF…</button></div><p class="dialog-note">Need to edit it later? <button class="text-button" data-action="save">Save a drawing file</button></p></dialog>
+
+    <dialog id="help-dialog"><div class="dialog-heading"><h2>Rillboard shortcuts</h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><p class="help-intro">Pick a tool and make your first mark. Everything is saved on this device automatically.</p><div class="shortcuts"><span>Select</span><kbd>V / 1</kbd><span>Rectangle · Diamond · Ellipse</span><kbd>R · D · O</kbd><span>Arrow · Line · Free draw</span><kbd>A · L · P</kbd><span>Text · Eraser · Hand</span><kbd>T · E · H</kbd><span>Pan the canvas</span><kbd>Space + drag</kbd><span>Square, circle, or straight line</span><kbd>Shift + drag</kbd><span>Undo / Redo</span><kbd>Ctrl Z / Ctrl Shift Z</kbd><span>Select all / Duplicate</span><kbd>Ctrl A / Ctrl D</kbd><span>Save / Open drawing</span><kbd>Ctrl S / Ctrl O</kbd><span>Zoom to drawing</span><kbd>Shift 1</kbd><span>Edit text</span><kbd>Double-click</kbd><span>Delete selection</span><kbd>Delete</kbd></div><div class="offline-note"><span data-icon="shield"></span><p><strong>Made for your own computer.</strong><br>Works without an internet connection, account, or subscription. Save a drawing file to keep a backup or move your work to another device.</p></div><p class="dialog-note">Rillboard · Windows whiteboard</p></dialog>
+
+    <dialog id="pdf-dialog" aria-labelledby="pdf-title"><div class="dialog-heading"><h2 id="pdf-title">Export PDF</h2><button class="icon-button" id="pdf-close" aria-label="Close PDF settings" data-icon="close"></button></div>
+      <div class="pdf-fields"><label>Paper<select id="pdf-paper"><option>A4</option><option>A3</option><option>Letter</option><option>Legal</option></select></label><label>Orientation<select id="pdf-orientation"><option>Portrait</option><option>Landscape</option></select></label><label>Margins (mm)<input id="pdf-margin" type="number" min="0" max="50" step="any" value="12"></label></div>
+      <div id="pdf-preview" aria-label="PDF page preview"></div><div class="pdf-nav"><button class="button" id="pdf-prev" aria-label="Previous page">Previous</button><span id="pdf-count"></span><button class="button" id="pdf-next" aria-label="Next page">Next</button></div>
+      <label class="field-label" for="pdf-pages">Pages to export</label><input id="pdf-pages" placeholder="All pages, or 1, 3–5"><div id="pdf-status" role="status"></div><button class="button primary" id="pdf-save">Save PDF</button></dialog>
+    <dialog id="reset-dialog"><div class="dialog-heading"><h2>Start a fresh canvas?</h2><button class="icon-button" data-action="close-dialog" aria-label="Close" data-icon="close"></button></div><p>Your current drawing will be cleared. You can undo this, or save a copy first.</p><div class="reset-actions"><button class="button" data-action="save">Save a copy</button><button class="button primary" data-action="confirm-new">Clear canvas</button></div></dialog>
+  </main>
+<dialog id="graph-dialog" aria-labelledby="graph-title"><form id="graph-form">
+  <div class="graph-heading"><div><h2 id="graph-title">Graph studio</h2><p>Explore curves, compare functions, or sketch on graph paper.</p></div><button type="button" class="button" data-action="close-dialog" aria-label="Close graph studio">✕</button></div>
+  <div class="graph-studio-layout"><div class="graph-controls">
+  <label>Graph type<select id="graph-mode"><option value="cartesian">Functions · y = f(x)</option><option value="implicit">Implicit · F(x, y) = G(x, y)</option><option value="parametric">Parametric · x(t); y(t)</option><option value="polar">Polar · r(θ)</option></select></label>
+  <label id="graph-expression-label" for="graph-expression">Expressions · one curve per line</label><textarea id="graph-expression" rows="4" maxlength="4000" placeholder="x^2&#10;2*sin(x)" spellcheck="false"></textarea>
+  <p id="graph-syntax">Use x; for example x^2 or if(x&lt;0, -x, sqrt(x)).</p>
+  <div class="graph-examples" id="graph-examples" aria-label="Example graphs"></div>
+  <div class="graph-ranges"><label>x minimum<input id="graph-xmin" type="number" value="-10" step="any" required></label><label>x maximum<input id="graph-xmax" type="number" value="10" step="any" required></label><label>y minimum<input id="graph-ymin" type="number" value="-10" step="any" required></label><label>y maximum<input id="graph-ymax" type="number" value="10" step="any" required></label><label>Grid spacing<input id="graph-step" type="number" value="1" min="0.000001" step="any" required></label><label>Detail<select id="graph-quality"><option value="2400">Standard</option><option value="6000">Fine</option></select></label></div>
+  <div class="graph-ranges" id="graph-parameter" hidden><label>t / θ minimum<input id="graph-tmin" type="number" value="0" step="any" required></label><label>t / θ maximum<input id="graph-tmax" type="number" value="6.283185307179586" step="any" required></label></div>
+  <label class="graph-equal"><input id="graph-equal-scale" type="checkbox" checked> Equal unit lengths on both axes</label>
+  <details><summary>Functions & notation</summary><p>Up to 8 curves, one per line. Multiplication: 2x or 2*x. Powers: x^2. Constants: pi, e. Angles use radians.</p><p>sin, cos, tan, sec, csc, cot, asin, acos, atan, atan2(y,x), sinh, cosh, tanh, asinh, acosh, atanh, sqrt, cbrt, abs, exp, ln, log (base 10), log2, floor, ceil, round, sign, min, max, pow, hypot.</p><p>Piecewise: if(x&lt;0, -x, x^2). Comparisons: &lt;, &gt;, &lt;=, &gt;=, ==, !=. Remainder: %.</p></details>
+  </div><div class="graph-preview-panel"><div id="graph-preview" aria-label="Graph preview"></div><button type="button" class="button" id="graph-preview-button">Preview curves</button><p>Numerical 2D plots. Fine detail, discontinuities and isolated points may need a narrower range; this is not a symbolic solver.</p><div class="graph-paper-card"><strong>Blank graph paper</strong><p>Drag on the board to choose the width and height. Write or sketch on top.</p><button type="button" class="button" data-action="graph-paper">▦ Draw graph paper</button></div></div></div>
+  <p id="graph-error" role="alert"></p><div class="dialog-actions"><button class="button" type="button" data-action="close-dialog">Cancel</button><button class="button primary" type="submit">Insert graph</button></div>
+</form></dialog>
+</body>
+</html>

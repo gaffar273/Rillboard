@@ -1,0 +1,14 @@
+{
+  "name": "rillboard",
+  "version": "2.0.0",
+  "private": true,
+  "description": "An independent Windows whiteboard with optional ChatGPT teaching tools.",
+  "scripts": {
+    "build": "node build.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "verify:desktop": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File windows/verify.ps1",
+    "verify:teacher": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File windows/verify-teacher.ps1",
+    "verify:bridge": "node qa/conversation-bridge.cjs"
+  },
+  "license": "MIT"
+}

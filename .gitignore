@@ -1,0 +1,13 @@
+/dist/
+/backups/
+/installed/
+/assets/
+/node_modules/
+/*.exe
+/*.zip
+/windows/icon.ico
+/THIRD-PARTY-NOTICES.txt
+/teacher-bridge/launcher.json
+/qa/*
+!/qa/conversation-bridge.cjs
+!/qa/teacher-review.cjs

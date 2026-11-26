@@ -1,0 +1,32 @@
+/* Teaching is an optional overlay. No permanent canvas columns. */
+#teacher-toggle{height:38px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--subtle);color:var(--text);font:600 12px var(--ui-font)}
+
+#teacher-panel{position:fixed;right:20px;top:126px;bottom:82px;width:min(300px,calc(100vw - 40px));z-index:15;display:flex;flex-direction:column;gap:10px;padding:18px;overflow:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);box-shadow:var(--shadow);font:13px/1.5 var(--ui-font)}
+#teacher-panel h2{font-size:19px;line-height:1.3;margin:0}#teacher-panel p{margin:0}
+#teacher-panel button,#teacher-panel select,#teacher-dock button{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:7px 9px;color:var(--text);font:inherit;cursor:pointer}
+#teacher-panel button:disabled{opacity:.4;cursor:default}#teacher-panel button.primary,#teacher-practice button[type=submit]{background:var(--action);border-color:var(--action);color:white}
+.teacher-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.teacher-heading button{padding:0 7px!important;font-size:18px!important;line-height:1.2!important}
+.teacher-kicker{font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--purple);text-transform:uppercase}
+.teacher-controls,.teacher-secondary{display:flex;gap:6px}.teacher-controls button,.teacher-secondary button{flex:1}.teacher-settings{display:flex;align-items:center;justify-content:space-between;gap:6px}.teacher-settings label{display:flex;gap:6px;align-items:center}
+#teacher-progress{height:4px;width:100%;accent-color:var(--purple)}#teacher-status{color:var(--muted);font-size:12px}#teacher-error{color:#b42318;font-size:13px}#teacher-error:empty{display:none}
+#teacher-connection{font-size:11px;color:var(--muted);background:var(--subtle);border-radius:6px;padding:5px 8px;line-height:1.4}#teacher-connection[data-connected=true]{color:#176743;background:#edf9f1}
+#teacher-options summary{cursor:pointer;color:var(--muted)}#teacher-options .teacher-secondary{margin-top:8px}
+#teacher-dock{position:fixed;left:50%;transform:translateX(-50%);bottom:70px;width:min(760px,calc(100vw - 80px));max-height:38vh;overflow:auto;z-index:11;border:1px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--panel);color:var(--text);box-shadow:var(--shadow);font:14px/1.45 var(--ui-font)}
+#teacher-caption{white-space:pre-wrap;margin:5px 0 0}#teacher-practice{border-top:1px solid var(--line);margin-top:10px;padding-top:8px}#teacher-question{display:block;font-weight:600;margin-bottom:8px}.teacher-answer-row{display:flex;gap:6px;align-items:center}#teacher-answer{flex:1;min-width:80px;border:1px solid var(--line);border-radius:7px;background:var(--page);color:var(--text);padding:8px;font:inherit}#teacher-practice p{margin:7px 0 0;font-size:12px;color:var(--muted)}
+#teacher-overlay{pointer-events:none}.teacher-pointer{fill:#f59f00;stroke:white;stroke-width:3}.teacher-focus{fill:none;stroke:#f59f00;stroke-width:3;stroke-dasharray:9 5}
+body.teacher-active #canvas{cursor:grab}body.teacher-active #welcome,body.teacher-active #tool-hint,body.teacher-active #tools-note,body.teacher-active #menu-note{visibility:hidden}
+#teacher-scroll{position:fixed;right:4px;top:128px;bottom:80px;width:16px;overflow-y:scroll;overflow-x:hidden;z-index:11;scrollbar-color:#8193bb var(--subtle);border-radius:8px}#teacher-scroll>div{width:1px;pointer-events:none}
+#teacher-navigation{position:fixed;left:50%;transform:translateX(-50%);bottom:17px;display:flex;gap:4px;z-index:11;background:var(--panel);padding:4px;border:1px solid var(--line);border-radius:9px}
+#teacher-navigation button{font:12px var(--ui-font);color:var(--text);border:0;border-radius:6px;padding:8px 9px;cursor:pointer}
+@media(max-width:1050px){#teacher-navigation{left:auto;right:42px;transform:none}body:has(#teacher-navigation:not([hidden])) .bottom-right{display:none}}
+@media(max-height:650px){#teacher-panel{gap:7px;padding:12px}#teacher-dock{font-size:13px;padding:8px 12px}}
+
+/* A quiet draggable position indicator replaces the native scrollbar arrows. */
+#teacher-scroll{right:6px;width:18px;overflow-y:scroll;scrollbar-width:none;background:transparent;border-radius:12px;touch-action:none;outline:none}
+#teacher-scroll::-webkit-scrollbar{display:none}
+#teacher-scroll-thumb{position:fixed;right:11px;width:6px;min-height:32px;border-radius:8px;background:var(--muted);opacity:.3;transition:opacity .15s,width .15s;cursor:grab;touch-action:none}
+#teacher-scroll:hover + #teacher-scroll-thumb,#teacher-scroll:focus-visible + #teacher-scroll-thumb,#teacher-scroll.dragging + #teacher-scroll-thumb{width:9px;opacity:.8}
+#teacher-scroll.dragging + #teacher-scroll-thumb{cursor:grabbing;background:var(--purple)}
+#teacher-scroll:focus-visible{box-shadow:0 0 0 2px var(--purple)}
+
+#teacher-scroll-thumb{pointer-events:none;z-index:12}

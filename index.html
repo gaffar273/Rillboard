@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f2e5">
-  <title>Rillboard for Windows</title>
+  <title>Download Rillboard for Linux or Windows</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <style>
     *{box-sizing:border-box}body{margin:0;background:#f7f2e5;color:#242331;font:16px/1.6 "Segoe UI",sans-serif;min-height:100vh;display:grid;place-items:center;padding:32px 20px}main{width:min(100%,680px);background:white;border:1px solid #e6e4ee;border-radius:24px;padding:44px;box-shadow:0 18px 64px #25203908}.brand{display:flex;align-items:center;gap:12px;font-weight:600}.brand img{width:40px;height:40px}.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#17584c;background:#dcece0;border-radius:30px;padding:6px 12px;margin-top:36px}.badge svg{width:15px;height:15px;fill:currentColor}h1{font-size:38px;line-height:1.2;letter-spacing:-1px;margin:18px 0}p{color:#696575;margin:0 0 24px}.downloads{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:28px 0 14px}a{color:#17675a;text-underline-offset:4px}.primary{background:#5e5aca;color:white;border-radius:10px;padding:13px 20px;font-weight:600;text-decoration:none}.primary:hover{background:#504bb7}a:focus-visible{outline:3px solid #b8afff;outline-offset:4px}.requirements{font-size:12px;margin-bottom:30px}section{border-top:1px solid #eeedf3;padding-top:24px}h2{font-size:17px;margin:0 0 12px}ol{padding-left:23px;color:#696575;margin:0}li{padding:3px 0}strong{color:#353040;font-weight:600}.note{margin:24px 0 0;background:#f7f2e5;padding:14px 16px;border-radius:10px;font-size:13px}@media(max-width:520px){main{padding:28px 24px;border-radius:18px}h1{font-size:31px}.badge{margin-top:26px}.downloads{align-items:stretch;flex-direction:column}.primary{text-align:center}}
@@ -13,12 +13,20 @@
 <body>
   <main>
     <div class="brand"><img src="icon.svg" alt=""><span>Rillboard</span></div>
-    <div class="badge"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M1 3l8-1v7H1zm10-1 8-1v8h-8zM1 11h8v7l-8-1zm10 0h8v8l-8-1z"/></svg>Windows desktop app</div>
-    <h1>Rillboard for Windows</h1>
+    <div class="badge">Offline whiteboard</div>
+    <h1>Rillboard for Linux and Windows</h1>
     <p>Sketch, write with your pen and organize your boards in a dedicated app window. Free to use, with your work saved on your computer.</p>
+    <section aria-label="Linux downloads">
+      <h2>Ubuntu, Debian and Linux Mint</h2>
+      <div class="downloads"><a class="primary" href="downloads/rillboard.deb" download>Download Linux installer (.deb)</a></div>
+      <p>Open the download with your software installer, choose <strong>Install</strong>, then open <strong>Rillboard</strong> from Applications.</p>
+      <p>Other Linux desktops: <a href="downloads/rillboard-linux.tar.gz" download>download the portable archive</a>, extract it and run <code>sh rillboard/linux/install.sh</code>.</p>
+      <p class="requirements">Requires Python 3 and a desktop browser. Live teaching is currently Windows-only.</p>
+    </section>
+    <h2>Windows</h2>
     <div class="downloads">
-      <a class="primary" href="Rillboard.exe" download="Rillboard.exe">Download Windows app</a>
-      <a href="Rillboard%20Windows.zip" download="Rillboard Windows.zip">Download installation package</a>
+      <a class="primary" href="https://github.com/gaffar273/Rillboard/releases/latest/download/Rillboard.exe">Download Windows app</a>
+      <a href="https://github.com/gaffar273/Rillboard/releases/latest/download/Rillboard-Windows.zip">Download installation package</a>
     </div>
     <p class="requirements">Windows 10 / 11 &middot; 64-bit &middot; .NET Framework 4.8 and Microsoft Edge WebView2 Runtime</p>
     <section aria-label="Getting started">

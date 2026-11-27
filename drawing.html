@@ -8,7 +8,7 @@
   <title>Rillboard</title>
   <base id="asset-base" href="./">
   <script>
-    if (!window.chrome?.webview) location.replace(new URL('index.html', location.href).href);
+    if (!window.chrome?.webview && location.protocol !== 'file:') location.replace(new URL('index.html', location.href).href);
     if (location.protocol === 'http:' || location.protocol === 'https:') {
       document.getElementById('asset-base').href = '/';
     }

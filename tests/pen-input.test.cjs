@@ -91,7 +91,7 @@ function workspace(initial, { captureFails = false } = {}) {
     return JSON.parse(storage.get('local-excalidraw-v1') || '{"elements":[]}');
   }
   return {
-    canvas, win, pointer, saved,
+    canvas, win, pointer, saved, marker: get('#pen-marker'),
     svg: () => get('#scene').innerHTML,
     key: (key, props = {}) => doc.emit('keydown', { key, ...props }),
     stroke(props = {}) {
@@ -271,15 +271,29 @@ test('dragging from an existing endpoint draws a connected line and can be undon
   assert.deepEqual(w.saved().elements.map(e=>e.id),['first']);
 });
 
-test('a pen tap selects an existing stroke without adding ink or an undo entry', () => {
+test('writing over existing ink adds ink and never selects or moves it', () => {
   const w = workspace();
   w.stroke();
   w.pointer('pointerdown'); w.pointer('pointerup');
-  assert.equal(w.win.TeachingBoard.read().elements.length,1);
+  assert.equal(w.saved().elements.length,2,'a tap on a stroke makes a dot');
   w.key('ArrowRight');
-  assert.equal(w.saved().elements[0].x,301);
-  w.key('z',{ctrlKey:true}); w.key('z',{ctrlKey:true});
-  assert.equal(w.saved().elements.length,0);
+  w.stroke();
+  const ink = w.saved().elements;
+  assert.equal(ink.length,3,'a stroke that starts on earlier ink is drawn');
+  assert.deepEqual(ink.map(e=>e.x),[300,300,300],'earlier ink stays in place');
+});
+
+test('a pen leaving the board marks its last position until it returns', () => {
+  const w = workspace({elements:[],view:{x:40,y:60,zoom:2}});
+  w.pointer('pointerleave',{pointerType:'mouse'});
+  assert.notEqual(w.marker.hidden,false,'a mouse leaves no marker');
+  w.stroke();
+  w.pointer('pointermove',{buttons:0,clientX:410,clientY:420});
+  w.pointer('pointerleave',{buttons:0});
+  assert.equal(w.marker.hidden,false);
+  assert.deepEqual([w.marker.style.left,w.marker.style.top],['400px','400px']);
+  w.pointer('pointermove',{buttons:0,clientX:500,clientY:500});
+  assert.equal(w.marker.hidden,true);
 });
 
 test('writing honors canvas offsets, pan and zoom', () => {

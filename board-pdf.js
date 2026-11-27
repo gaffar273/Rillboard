@@ -73,8 +73,15 @@
         }
         document.head.append(style);document.body.append(pages);
         await document.fonts.ready;
-        const result=await save({type:'print-pdf',name:filename()+'.pdf',width:plan.w,height:plan.h});
-        $('pdf-status').textContent=result?'Saved '+result:'Save cancelled.';
+        if(save){
+          const result=await save({type:'print-pdf',name:filename()+'.pdf',width:plan.w,height:plan.h});
+          $('pdf-status').textContent=result?'Saved '+result:'Save cancelled.';
+        }else{
+          // The browser names the PDF after the page title.
+          const title=document.title;document.title=filename();
+          try{window.print();}finally{document.title=title;}
+          $('pdf-status').textContent='Choose “Save as PDF” in the print window to finish.';
+        }
       }catch(e){$('pdf-status').textContent=e.message;}
       finally{pages.remove();style.remove();printing=false;$('pdf-save').disabled=false;}
     };

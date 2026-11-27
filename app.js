@@ -804,7 +804,7 @@
   }
   const actions={shapes:openShapes,graph:()=>{openDialog('#graph-dialog');updateGraphMode();previewGraph();},'graph-paper':()=>{$('#graph-dialog').close();setTool('graphpaper');},open:()=>{closeMenus();if(desktop)desktop.postMessage(JSON.stringify({type:'open'}));else $('#file-input').click();},save:saveFile,export:openExport,help:()=>openDialog('#help-dialog'),new:()=>openDialog('#reset-dialog'),'confirm-new':()=>{const before=snapshot();elements=[];selected.clear();view={x:0,y:0,zoom:1};documentName='Untitled';$('#file-name').value=documentName;$('#reset-dialog').close();setTool('select');commit(before);},'close-dialog':()=>$$('dialog[open]').forEach(d=>d.close()),'export-svg':exportSvg,'export-png':exportPng,delete:deleteSelected,duplicate:()=>duplicate(),back:()=>layer(false),front:()=>layer(true),'close-library':()=>{$('#library-panel').hidden=true;$('#library-button').setAttribute('aria-expanded','false');}};
   Object.assign(actions,{boards:openBoards,templates:openTemplates,history:openHistory,'new-board':()=>newBoard(),present,'exit-present':exitPresent,'save-version':()=>workspaceAction(()=>{workspace.checkpoint(workspaceScene());renderHistory();toast('Version saved on this device.');})});
-  Object.assign(actions,{undo:()=>undo(),redo:()=>undo(true),'select-all':()=>{setTool('select');selected=new Set(elements.map(el=>el.id));render();updateProperties();},'zoom-in':()=>zoomTo(view.zoom*1.2),'zoom-out':()=>zoomTo(view.zoom/1.2),'zoom-reset':()=>zoomTo(1),fit,settings:()=>openDialog('#settings-dialog'),quit:()=>desktop?.postMessage(JSON.stringify({type:'quit'}))});
+  Object.assign(actions,{undo:()=>undo(),redo:()=>undo(true),'select-all':()=>{setTool('select');selected=new Set(elements.map(el=>el.id));render();updateProperties();},'zoom-in':()=>zoomTo(view.zoom*1.2),'zoom-out':()=>zoomTo(view.zoom/1.2),'zoom-reset':()=>zoomTo(1),fit,settings:()=>openDialog('#settings-dialog'),quit:()=>{if(desktop){desktop.postMessage(JSON.stringify({type:'quit'}));return;}saveLocal();window.close();setTimeout(()=>toast('Your boards are saved. Close this window to exit.'),300);}});
   function setStylePanelOpen(open) {
     document.body.classList.toggle('properties-open',open);
     $('#style-toggle').setAttribute('aria-expanded',String(open));
@@ -841,8 +841,8 @@
   $('#tool-lock').onclick=()=>{locked=!locked;$('#tool-lock').classList.toggle('active',locked);$('#tool-lock').setAttribute('aria-pressed',String(locked));$('#tool-lock').innerHTML=icon(locked?'lock':'unlock');};
   const graphExamples={
     cartesian:[['Waves','sin(x)\ncos(x)'],['Polynomial','x^3-3x'],['Piecewise','if(x<0,-x,sqrt(x))']],
-    implicit:[['Circle','x^2+y^2=25'],['Hyperbola','x^2-y^2=9'],['Heart','(x^2+y^2-1)^3-x^2*y^3=0']],
-    parametric:[['Ellipse','5*cos(t); 3*sin(t)'],['Lissajous','5*sin(3*t); 5*sin(2*t)'],['Spiral','t*cos(t); t*sin(t)'],['India','indiax(t); indiay(t)']],
+    implicit:[['Circle','x^2+y^2=25'],['Hyperbola','x^2-y^2=9'],['Heart','(x^2+y^2-1)^3-x^2*y^3=0',{xmin:-2,xmax:2,ymin:-2,ymax:2,step:.5}]],
+    parametric:[['Ellipse','5*cos(t); 3*sin(t)'],['Lissajous','5*sin(3*t); 5*sin(2*t)'],['Spiral','t*cos(t); t*sin(t)'],['India','indiax(t); indiay(t)',{tmax:1,step:2}]],
     polar:[['Rose','5*cos(3*theta)'],['Cardioid','3*(1+cos(theta))'],['Spiral','theta']]
   };
   function updateGraphMode(){
@@ -854,10 +854,12 @@
   function graphOptions(){return {expression:$('#graph-expression').value,mode:$('#graph-mode').value||'cartesian',xmin:+$('#graph-xmin').value,xmax:+$('#graph-xmax').value,ymin:+$('#graph-ymin').value,ymax:+$('#graph-ymax').value,step:+$('#graph-step').value,tmin:+$('#graph-tmin').value,tmax:+$('#graph-tmax').value,quality:+$('#graph-quality').value||2400,equalScale:$('#graph-equal-scale').checked};}
   function previewGraph(){try{const items=B.graph(graphOptions());$('#graph-preview').innerHTML=B.svgDocument(items,'#ffffff',true);$('#graph-error').textContent='';return items;}catch(error){$('#graph-preview').innerHTML='';$('#graph-error').textContent=error.message;return null;}}
   $('#graph-mode').addEventListener('change',()=>{updateGraphMode();$('#graph-preview').innerHTML='';$('#graph-error').textContent='';});
-  $('#graph-examples').addEventListener('click',e=>{const button=e.target.closest('[data-graph-example]');if(!button)return;const mode=$('#graph-mode').value||'cartesian';$('#graph-expression').value=graphExamples[mode][+button.dataset.graphExample][1];if(mode==='implicit'&&+button.dataset.graphExample===2){$('#graph-xmin').value=-2;$('#graph-xmax').value=2;$('#graph-ymin').value=-2;$('#graph-ymax').value=2;$('#graph-step').value=.5;}if(mode==='parametric' && $('#graph-expression').value==='indiax(t); indiay(t)'){
-    for(const axis of ['x','y']){$('#graph-'+axis+'min').value=-10;$('#graph-'+axis+'max').value=10;}
-    $('#graph-tmin').value=0;$('#graph-tmax').value=1;$('#graph-step').value=2;$('#graph-equal-scale').checked=true;
-  }previewGraph();});
+  $('#graph-examples').addEventListener('click',e=>{const button=e.target.closest('[data-graph-example]');if(!button)return;const mode=$('#graph-mode').value||'cartesian';const [,expression,settings]=graphExamples[mode][+button.dataset.graphExample];$('#graph-expression').value=expression;
+    // Start from the standard window so one example's range never clips the next.
+    const ranges={xmin:-10,xmax:10,ymin:-10,ymax:10,step:1,tmin:0,tmax:2*Math.PI,...settings};
+    for(const [name,value] of Object.entries(ranges))$('#graph-'+name).value=value;
+    $('#graph-equal-scale').checked=true;
+    previewGraph();});
   $('#graph-preview-button').addEventListener('click',previewGraph);
   $('#graph-form').addEventListener('input',()=>{$('#graph-preview').innerHTML='<p>Settings changed. Click Preview curves.</p>';$('#graph-error').textContent='';});
   $('#graph-form').addEventListener('submit',e=>{
@@ -939,7 +941,7 @@
     flush:()=>saveLocal(),
     svg:()=>B.svgDocument(elements,background,true)
   };
-  window.BoardPDF?.attach({scene:()=>({elements,background}),filename:safeName,save:requestSave});
+  window.BoardPDF?.attach({scene:()=>({elements,background}),filename:safeName,save:desktop&&requestSave});
   createLibrary();canvas.dataset.tool=tool;$('#file-name').value=documentName;render();updateProperties();
   $('#board-title').textContent=documentName;
   if(workspaceError)setTimeout(()=>toast(workspaceError),700);

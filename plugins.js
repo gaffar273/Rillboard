@@ -106,6 +106,13 @@
     updateGuide();
     guide.showModal();
   }
+  if (!host) {
+    // The connector is part of the Windows app; a browser has nothing to enable.
+    state.textContent = 'Available in the Windows app';
+    button.disabled = true;
+    document.querySelector('#guide-open').disabled = true;
+    return;
+  }
   button.onclick = () => changePlugin(!removeTeaching, true);
   document.querySelector('#guide-open').onclick = openGuide;
   document.querySelector('#guide-close').onclick = () => guide.close();

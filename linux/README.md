@@ -6,7 +6,10 @@ in the extracted folder for portable use.
 
 Requires a graphical desktop, Python 3 and a modern browser. Chromium or
 Google Chrome opens a dedicated app window; otherwise xdg-open uses the
-default browser. No network connection is required. Use the same browser,
+default browser. No network connection is required.
+
+Snap browsers cannot read hidden or system folders. When one is used, the
+launcher copies the app to `~/rillboard-app` and opens it from there. Use the same browser,
 profile and installation path to retain browser-local boards. Export
 important boards before moving the app or clearing browser data.
 

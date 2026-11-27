@@ -79,9 +79,16 @@
     if (previous?.dataset.element === shape.id) previous.outerHTML = markup;
     else scene.insertAdjacentHTML('beforeend',markup);
   }
+  // A pen out of range has no cursor, so mark where its tip was last seen.
+  const penMarker=$('#pen-marker');let penSpot=null;
+  function placePenMarker() {
+    if(!penSpot)return;
+    penMarker.style.left=(penSpot.x*view.zoom+view.x)+'px';penMarker.style.top=(penSpot.y*view.zoom+view.y)+'px';
+  }
   function transformLayers() {
     scene.setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.zoom})`);
     selection.setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.zoom})`);
+    placePenMarker();
   }
   function renderViewport(zoomChanged=false) {
     transformLayers();
@@ -405,7 +412,8 @@
       return;
     }
     const drawingType=B.shapes[tool]?.type || (['pencil','text','graphpaper'].includes(tool)?tool:null);
-    const drawingHit=drawingType&&hitAt(p,drawingType);
+    // Writing crosses earlier ink all the time, so the pen tool never picks it up; V selects.
+    const drawingHit=drawingType&&tool!=='pencil'&&hitAt(p,drawingType);
     if(tool==='select'||tool==='lasso'||(drawingType&&selected.size&&(e.target.dataset.handle||selected.has(drawingHit?.id)))) {
       const handle=e.target.dataset.handle;
       if(handle&&selected.size){
@@ -619,6 +627,8 @@
   }
   canvas.addEventListener('pointerdown',pointerDown);canvas.addEventListener('pointermove',pointerMove);canvas.addEventListener('pointerup',pointerUp);
   canvas.addEventListener('pointercancel',pointerCancel);canvas.addEventListener('lostpointercapture',pointerCancel);
+  for(const name of ['pointerdown','pointermove','pointerup'])canvas.addEventListener(name,e=>{if(e.pointerType==='pen'){penSpot=worldPoint(e);penMarker.hidden=true;}});
+  canvas.addEventListener('pointerleave',e=>{if(e.pointerType==='pen'&&penSpot){placePenMarker();penMarker.hidden=false;}});
   window.addEventListener('pointermove',e=>{if(!canvas.contains(e.target))pointerMove(e);});
   window.addEventListener('pointerup',pointerUp);window.addEventListener('pointercancel',pointerCancel);
   canvas.addEventListener('dblclick',e=>{if(document.body.classList.contains('teacher-active'))return;if(tool==='select'||tool==='text'){const p=worldPoint(e),hit=hitAt(p,tool==='text'?'text':null);if(hit?.type==='text')beginText(p,hit);else if(!hit&&tool==='select')beginText(p);}});
@@ -756,7 +766,7 @@
     window.Teacher?.beforeBoardChange();
     const parsed=B.parseScene(data);elements=parsed.elements;background=parsed.background;documentName=data.name||'Untitled';
     view=data.view?{x:B.num(data.view.x),y:B.num(data.view.y),zoom:B.clamp(B.num(data.view.zoom,1),.1,5)}:{x:0,y:0,zoom:1};
-    homeDismissed=false;past=[];future=[];selected.clear();$('#file-name').value=documentName;$('#board-title').textContent=documentName;
+    homeDismissed=false;past=[];future=[];selected.clear();penSpot=null;penMarker.hidden=true;$('#file-name').value=documentName;$('#board-title').textContent=documentName;
     $$('dialog[open]').forEach(d=>d.close());setTool('select');render();saveLocal();
     window.Teacher?.boardChanged();
   }
